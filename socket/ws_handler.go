@@ -15,6 +15,10 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+func Start() {
+
+}
+
 func HandleConnection(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)

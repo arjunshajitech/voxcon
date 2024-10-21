@@ -1,4 +1,4 @@
-package internal
+package player
 
 import (
 	"github.com/google/uuid"
@@ -9,6 +9,7 @@ import (
 
 type Player struct {
 	Id           string                 `json:"id"`
+	GameId       string                 `json:"game_id"`
 	Name         string                 `json:"name"`
 	WsConn       *websocket.Conn        `json:"ws_conn"`
 	SenderPeer   *webrtc.PeerConnection `json:"sender_peer"`
@@ -17,21 +18,20 @@ type Player struct {
 	InChan       chan string            `json:"in_chan"`
 	OutChan      chan string            `json:"out_chan"`
 	MainChan     chan string            `json:"main_chan"`
-	Game         *Game                  `json:"game"`
 	Mu           sync.RWMutex           `json:"rwm"`
 }
 
-func NewPlayer(name string, conn *websocket.Conn,
-	inChan chan string, outChan chan string, mainChan chan string, game *Game) *Player {
+func NewPlayer(name string, gameId string, conn *websocket.Conn,
+	inChan chan string, outChan chan string, mainChan chan string) *Player {
 
 	return &Player{
 		Id:       uuid.New().String(),
+		GameId:   gameId,
 		Name:     name,
 		WsConn:   conn,
 		MainChan: mainChan,
 		InChan:   inChan,
 		OutChan:  outChan,
-		Game:     game,
 	}
 }
 
@@ -71,10 +71,10 @@ func (p *Player) GetDataChannel() *webrtc.DataChannel {
 	return p.DataChannel
 }
 
-func (p *Player) GetGame() *Game {
+func (p *Player) GetGameId() string {
 	p.Mu.RLock()
 	defer p.Mu.RUnlock()
-	return p.Game
+	return p.GameId
 }
 
 func (p *Player) GetMainChan() chan string {
