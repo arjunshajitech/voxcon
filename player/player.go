@@ -53,6 +53,12 @@ func (p *Player) SetDataChannel(dc *webrtc.DataChannel) {
 	p.DataChannel = dc
 }
 
+func (p *Player) ID() string {
+	p.Mu.RLock()
+	defer p.Mu.RUnlock()
+	return p.Id
+}
+
 func (p *Player) GetSenderPeer() *webrtc.PeerConnection {
 	p.Mu.RLock()
 	defer p.Mu.RUnlock()

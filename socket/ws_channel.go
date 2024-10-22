@@ -7,14 +7,16 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"voxcon/constant"
+	"voxcon/game"
+	"voxcon/player"
 )
 
-type MainChanMessage struct {
+type ChanMessage struct {
 	Type string      `json:"type"`
 	Data interface{} `json:"data"`
 }
 
-func handleInputChannel(ctx context.Context, in chan string) {
+func handleInputChannel(ctx context.Context, in chan string, game *game.Game, player *player.Player) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -29,13 +31,30 @@ func handleInputChannel(ctx context.Context, in chan string) {
 					return
 				}
 
-				fmt.Printf("Received message: %s\n", msg)
+				var message *ChanMessage
+				if err := json.Unmarshal([]byte(msg), &message); err != nil {
+					fmt.Printf("Error unmarshalling main message: %v", err)
+					break
+				}
+
+				switch message.Type {
+				case constant.OfferSDP:
+					{
+
+						break
+					}
+				case constant.AnswerSDP:
+					{
+
+						break
+					}
+				}
 			}
 		}
 	}
 }
 
-func handleOutputChannel(ctx context.Context, out chan string, conn *websocket.Conn) {
+func handleOutputChannel(ctx context.Context, out chan string, conn *websocket.Conn, game *game.Game, player *player.Player) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -59,7 +78,7 @@ func handleOutputChannel(ctx context.Context, out chan string, conn *websocket.C
 	}
 }
 
-func handleMainChannel(ctx context.Context, main chan string, cancel context.CancelFunc, conn *websocket.Conn) {
+func handleMainChannel(ctx context.Context, main chan string, cancel context.CancelFunc, conn *websocket.Conn, game *game.Game, player *player.Player) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -74,7 +93,7 @@ func handleMainChannel(ctx context.Context, main chan string, cancel context.Can
 					return
 				}
 
-				var message *MainChanMessage
+				var message *ChanMessage
 				if err := json.Unmarshal([]byte(msg), &message); err != nil {
 					fmt.Printf("Error unmarshalling main message: %v", err)
 					break

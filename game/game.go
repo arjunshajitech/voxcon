@@ -36,8 +36,18 @@ func (g *Game) GetPlayer(id string) *player.Player {
 	return g.Players[id]
 }
 
-func (g *Game) SetPlayer(id string, player *player.Player) {
+func (g *Game) GetPlayers() []*player.Player {
+	g.Mu.RLock()
+	defer g.Mu.RUnlock()
+	players := make([]*player.Player, len(g.Players))
+	for _, p := range g.Players {
+		players = append(players, p)
+	}
+	return players
+}
+
+func (g *Game) SetPlayer(player *player.Player) {
 	g.Mu.Lock()
 	defer g.Mu.Unlock()
-	g.Players[id] = player
+	g.Players[player.ID()] = player
 }

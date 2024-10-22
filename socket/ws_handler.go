@@ -7,6 +7,8 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"voxcon/constant"
+	"voxcon/player"
+	"voxcon/space"
 )
 
 var upgrader = websocket.Upgrader{
@@ -15,12 +17,9 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func Start() {
+func HandleConnection(w http.ResponseWriter, r *http.Request, space *space.Space) {
 
-}
-
-func HandleConnection(w http.ResponseWriter, r *http.Request) {
-
+	// TODO: Validate auth token during handshake then continue
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error during connection upgrade:", err)
@@ -32,12 +31,16 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 	outChan := make(chan string, 10)
 	mainChan := make(chan string, 10)
 
-	go handleInputChannel(ctx, inChan)
-	go handleOutputChannel(ctx, outChan, conn)
-	go handleMainChannel(ctx, mainChan, cancel, conn)
+	g := space.GetGame(constant.DefaultGameID)
+	p := player.NewPlayer("name", g.ID(), conn, inChan, outChan, mainChan)
+	g.SetPlayer(p)
+
+	go handleInputChannel(ctx, inChan, g, p)
+	go handleOutputChannel(ctx, outChan, conn, g, p)
+	go handleMainChannel(ctx, mainChan, cancel, conn, g, p)
 
 	defer func() {
-		wsclMess, _ := json.Marshal(&MainChanMessage{
+		wsclMess, _ := json.Marshal(&ChanMessage{
 			Type: constant.PlayerLeftWscl,
 			Data: nil,
 		})
